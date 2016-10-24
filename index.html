@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<style>
+		li{
+			list-style: none;
+			margin: 10px 0;
+		}
+	</style>
+</head>
+<body>
+	<h1>AIとの会話テスト</h1>
+	<ul id="result"></ul>
+	<p class="trigger">少し待ってね！</p>
+	<button onClick="start()">開始！</button>
+	<script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
+	<script>
+		var $ = jQuery;
+		var recognition;
+		var nowRecognition = false;
+		function start(){
+			recognition = new webkitSpeechRecognition();
+			recognition.lang = "ja-JP";
+			$(".trigger").text("喋ってね！");
+			recognition.onend = function(){
+				stop();
+			}
+			recognition.onresult = function(e){
+				if(e.results.length > 0){
+					var value = e.results[0][0].transcript;
+					$(".trigger").text("少し待ってね！");
+					$("#result").append("<li>"+value+"</li>");
+					$.ajax({
+						url: "/api",
+						type: "get",
+						data: {
+							text: value
+						},
+						success: function(data){
+							$("#result").append("<li>"+data.res+"</li>");
+							setTimeout(function(){
+								start();
+							},3000)
+						}
+					})
+				}
+			}
+			recognition.start();
+			nowRecognition = true;
+		}
+		function stop(){
+			if(nowRecognition){
+				recognition.stop();
+				nowRecognition = false;
+			}
+		}
+	</script>
+</body>
+</html>
